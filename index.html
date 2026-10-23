@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>初壽險考題測試系統</title>
+<style>
+  :root {
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --border: #dbe1e8;
+    --text: #1c2632;
+    --muted: #647080;
+    --primary: #1f63d6;
+    --primary-weak: #e4edfc;
+    --success: #16803c;
+    --success-weak: #e2f3e7;
+    --danger: #c83434;
+    --danger-weak: #fbe7e7;
+    --warn: #a86400;
+    --warn-weak: #fff2d9;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .08);
+    --nav-shadow: 0 -4px 16px rgba(16, 24, 40, .08);
+    color-scheme: light;
+  }
+  /* 深色主題：跟隨系統設定，或由外層明確指定 data-theme */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f141a;
+      --surface: #18202a;
+      --surface-2: #212b37;
+      --border: #2d3947;
+      --text: #e5ecf3;
+      --muted: #93a1b0;
+      --primary: #4d8dfc;
+      --primary-weak: #1a2c49;
+      --success: #41b867;
+      --success-weak: #14301f;
+      --danger: #ef6868;
+      --danger-weak: #3a1d20;
+      --warn: #e0a23c;
+      --warn-weak: #3a2c13;
+      --shadow: none;
+      --nav-shadow: 0 -4px 16px rgba(0, 0, 0, .35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f141a;
+    --surface: #18202a;
+    --surface-2: #212b37;
+    --border: #2d3947;
+    --text: #e5ecf3;
+    --muted: #93a1b0;
+    --primary: #4d8dfc;
+    --primary-weak: #1a2c49;
+    --success: #41b867;
+    --success-weak: #14301f;
+    --danger: #ef6868;
+    --danger-weak: #3a1d20;
+    --warn: #e0a23c;
+    --warn-weak: #3a2c13;
+    --shadow: none;
+    --nav-shadow: 0 -4px 16px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, label { touch-action: manipulation; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+  }
+  h1, h2, h3 { margin: 0; line-height: 1.3; }
+  h2 { font-size: 1.1rem; }
+  h3 { font-size: 1rem; }
+
+  .app-header { background: var(--surface); border-bottom: 1px solid var(--border); }
+  .app-header .inner { max-width: 1120px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .logo { width: 34px; height: 34px; border-radius: 9px; background: var(--primary); color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+  .app-header h1 { font-size: 1.15rem; }
+  .app-header small { color: var(--muted); font-size: .8rem; display: block; }
+  .container { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+  .card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  .muted { color: var(--muted); }
+  .small { font-size: .85rem; }
+  .empty { color: var(--muted); text-align: center; padding: 24px 0; margin: 0; }
+
+  /* 按鈕 */
+  .btn { font: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; transition: background .15s, filter .15s, border-color .15s; white-space: nowrap; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .option:focus-visible, .cell:focus-visible, .link-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  /* 觸控裝置沒有滑鼠懸停，避免點擊後殘留 hover 樣式 */
+  @media (hover: hover) {
+    .btn:hover:not(:disabled) { background: var(--surface-2); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary); filter: brightness(1.08); }
+    .btn-danger:hover:not(:disabled) { background: var(--danger); filter: brightness(1.08); }
+  }
+  .btn:active:not(:disabled) { filter: brightness(.94); }
+  .btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
+  .btn-sm { padding: 5px 12px; font-size: .875rem; }
+  .btn-lg { padding: 12px 30px; font-size: 1.05rem; font-weight: 600; }
+  .btn-block { width: 100%; }
+  .link-btn { font: inherit; font-size: .85rem; background: none; border: 0; padding: 0; margin-top: 14px; color: var(--muted); text-decoration: underline; cursor: pointer; }
+
+  .chip { display: inline-block; padding: 1px 10px; border-radius: 999px; background: var(--primary-weak); color: var(--primary); font-size: .8rem; font-weight: 600; white-space: nowrap; }
+  .chip-warn { background: var(--warn-weak); color: var(--warn); }
+  .chip-success { background: var(--success-weak); color: var(--success); }
+  .chip-danger { background: var(--danger-weak); color: var(--danger); }
+
+  /* 首頁 */
+  .resume-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; border-left: 4px solid var(--warn); }
+  .resume-card p { margin: 2px 0 0; }
+  .resume-actions { display: flex; gap: 8px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; }
+  .stat-label { color: var(--muted); font-size: .85rem; }
+  .stat-value { font-size: 1.85rem; font-weight: 700; line-height: 1.25; font-variant-numeric: tabular-nums; }
+  .stat-sub { color: var(--muted); font-size: .8rem; }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .field { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+  .field legend { font-weight: 600; font-size: .95rem; margin-bottom: 8px; padding: 0; }
+  .field-hint { margin: 6px 0 0; color: var(--muted); font-size: .85rem; }
+  .segmented { display: flex; flex-wrap: wrap; gap: 8px; }
+  .segmented label { position: relative; cursor: pointer; }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); user-select: none; transition: background .15s, border-color .15s; }
+  .segmented span small { color: var(--muted); font-variant-numeric: tabular-nums; }
+  @media (hover: hover) { .segmented label:hover span { border-color: var(--primary); } }
+  .segmented input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .segmented input:checked + span small { color: rgba(255, 255, 255, .85); }
+  .segmented input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .segmented-sm span { padding: 3px 12px; font-size: .875rem; }
+
+  .toggles { display: flex; flex-wrap: wrap; gap: 14px 40px; margin: 4px 0 20px; }
+  .switch { position: relative; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .switch.disabled { opacity: .5; cursor: not-allowed; }
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .track { position: relative; width: 44px; height: 24px; border-radius: 999px; background: var(--border); flex: none; transition: background .15s; }
+  .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: transform .15s; }
+  .switch input:checked + .track { background: var(--primary); }
+  .switch input:checked + .track::after { transform: translateX(20px); }
+  .switch input:focus-visible + .track { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .switch-text { display: flex; flex-direction: column; line-height: 1.35; font-weight: 600; }
+  .switch-text small { font-weight: 400; color: var(--muted); }
+
+  .start-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .summary { margin: 0; color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; }
+  .history-table { width: 100%; border-collapse: collapse; font-size: .92rem; white-space: nowrap; }
+  .history-table th, .history-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .history-table th { color: var(--muted); font-size: .82rem; font-weight: 600; }
+  .history-table tbody tr:last-child td { border-bottom: 0; }
+  .history-table .chip { margin-left: 6px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .pass { color: var(--success); font-weight: 700; }
+  .fail { color: var(--danger); font-weight: 700; }
+  /* 手機：歷史紀錄改為每筆一張卡片，不需左右捲動 */
+  @media (max-width: 600px) {
+    .history-table, .history-table tbody { display: block; white-space: normal; }
+    .history-table thead { display: none; }
+    .history-table tr {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 0;
+      grid-template-areas: "label score" "date rate" "time action";
+      border-bottom: 1px solid var(--border);
+    }
+    .history-table tbody tr:last-child { border-bottom: 0; }
+    .history-table td { padding: 0; border: 0; }
+    .history-table .c-label { grid-area: label; font-weight: 600; }
+    .history-table .c-label .chip { margin: 0 0 0 6px; }
+    .history-table .c-score { grid-area: score; text-align: right; font-size: 1.1rem; }
+    .history-table .c-date { grid-area: date; color: var(--muted); font-size: .85rem; }
+    .history-table .c-rate { grid-area: rate; text-align: right; font-size: .85rem; }
+    .history-table .c-time { grid-area: time; align-self: center; color: var(--muted); font-size: .85rem; }
+    .history-table .c-action { grid-area: action; justify-self: end; margin-top: 4px; }
+    .history-table .c-total { display: none; }
+  }
+
+  /* 測驗頁 */
+  .quiz-bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 20px 0; overflow: hidden; }
+  .quiz-bar-left, .quiz-bar-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .quiz-progress { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .timer { display: flex; align-items: baseline; gap: 6px; padding: 3px 12px; border-radius: 8px; background: var(--surface-2); font-variant-numeric: tabular-nums; }
+  .timer span { font-size: .8rem; color: var(--muted); }
+  .timer strong { font-size: 1.25rem; }
+  .timer.warn { background: var(--danger-weak); color: var(--danger); }
+  .timer.warn span { color: var(--danger); }
+  .progress { flex-basis: calc(100% + 40px); height: 4px; margin: 0 -20px; background: var(--surface-2); }
+  .progress-fill { height: 100%; width: 0; background: var(--primary); transition: width .2s; }
+
+  .quiz-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+  .question-card { padding: 24px; scroll-margin-top: 90px; }
+  .q-meta { color: var(--muted); font-size: .85rem; margin-bottom: 8px; }
+  .q-text { font-size: 1.12rem; line-height: 1.85; margin: 0 0 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { font: inherit; width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; text-align: left; line-height: 1.6; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); cursor: pointer; transition: border-color .12s, background .12s; }
+  @media (hover: hover) {
+    .option:hover { border-color: var(--primary); }
+  }
+  .option.selected { border-color: var(--primary); background: var(--primary-weak); }
+  .option.locked { cursor: default; }
+  @media (hover: hover) {
+    .option.locked:hover { border-color: var(--border); }
+  }
+  .option.is-correct, .option.is-correct:hover { border-color: var(--success); background: var(--success-weak); }
+  .option.is-wrong, .option.is-wrong:hover { border-color: var(--danger); background: var(--danger-weak); }
+  .option-key { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-size: .9rem; font-weight: 700; }
+  .option.selected .option-key { background: var(--primary); color: #fff; }
+  .option.is-correct .option-key { background: var(--success); color: #fff; }
+  .option.is-wrong .option-key { background: var(--danger); color: #fff; }
+  .option-text { flex: 1; min-width: 0; padding-top: 1px; overflow-wrap: anywhere; }
+
+  .feedback { margin-top: 14px; padding: 10px 14px; border-radius: 10px; }
+  .feedback.ok { background: var(--success-weak); color: var(--success); }
+  .feedback.bad { background: var(--danger-weak); color: var(--danger); }
+  .feedback p { margin: 6px 0 0; color: var(--text); white-space: pre-wrap; }
+  .feedback .answer-reveal { font-weight: 700; }
+
+  .quiz-nav { display: flex; justify-content: space-between; gap: 12px; }
+  .quiz-nav .btn { flex: 1; max-width: 220px; padding: 11px 18px; }
+  .kbd-hint { text-align: center; color: var(--muted); font-size: .8rem; margin: 10px 0 16px; }
+  .hint-touch { display: none; }
+  @media (hover: none) and (pointer: coarse) {
+    .hint-key { display: none; }
+    .hint-touch { display: inline; }
+  }
+  .nav-sheet { display: none; }
+
+  .matrix-card { position: sticky; top: 96px; scroll-margin-top: 120px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--muted); margin-bottom: 10px; }
+  .dot { display: inline-block; width: 11px; height: 11px; margin-right: 4px; border-radius: 3px; border: 1px solid var(--border); vertical-align: -1px; background: var(--surface); }
+  .dot-answered { background: var(--primary); border-color: var(--primary); }
+  .dot-correct { background: var(--success); border-color: var(--success); }
+  .dot-wrong { background: var(--danger); border-color: var(--danger); }
+  .dot-current { border: 2px solid var(--text); }
+  .matrix { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; max-height: min(52vh, 440px); overflow-y: auto; padding: 4px; margin: 0 -4px 14px; }
+  .cell { font: inherit; font-size: .85rem; height: 36px; padding: 0; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums; }
+  @media (hover: hover) { .cell:hover { border-color: var(--primary); } }
+  .cell.answered { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .cell.correct { background: var(--success); border-color: var(--success); color: #fff; }
+  .cell.wrong { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .cell.current { outline: 2px solid var(--text); outline-offset: 1px; font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .quiz-layout { grid-template-columns: minmax(0, 1fr); }
+    .matrix-card { position: static; }
+    .quiz-nav { margin-bottom: 4px; }
+  }
+  /* 手機：上一題／下一題固定在畫面底部，拇指隨時點得到 */
+  @media (max-width: 600px) {
+    #view-quiz { padding-bottom: 64px; }
+    .quiz-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0; gap: 8px;
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+      background: var(--surface); border-top: 1px solid var(--border); box-shadow: var(--nav-shadow);
+    }
+    .quiz-nav .btn { max-width: none; min-height: 46px; padding: 10px 12px; }
+    .quiz-nav .nav-sheet { display: inline-flex; flex: 0 0 auto; }
+    .kbd-hint { margin: 12px 0; }
+  }
+  @media (max-width: 520px) {
+    .container { padding-top: 12px; }
+    .card, .question-card { padding: 16px; }
+    .quiz-bar { gap: 6px 12px; padding: 8px 14px 0; margin-bottom: 12px; }
+    .quiz-bar-left, .quiz-bar-right { gap: 6px 10px; }
+    .quiz-progress { font-size: 1rem; }
+    .timer { padding: 2px 10px; }
+    .timer strong { font-size: 1.1rem; }
+    .progress { flex-basis: calc(100% + 28px); margin: 0 -14px; }
+    .q-text { font-size: 1.05rem; line-height: 1.75; }
+    .option { padding: 12px; min-height: 52px; }
+    .segmented-sm span { padding: 6px 12px; }
+    .app-header .inner { padding-block: 10px; }
+    .stats { gap: 8px; margin-bottom: 12px; }
+    .stat { padding: 10px 12px; }
+    .stat-value { font-size: 1.45rem; }
+    .stat-sub { font-size: .75rem; line-height: 1.4; }
+    .start-row .btn-lg, #btn-wrongbook { width: 100%; }
+    .resume-actions { width: 100%; }
+    .resume-actions .btn { flex: 1; }
+  }
+
+  /* 結果頁 */
+  .result-hero { text-align: center; padding: 28px 20px; }
+  .notice { display: inline-block; margin: 0 0 16px; padding: 6px 14px; border-radius: 8px; background: var(--warn-weak); color: var(--warn); font-weight: 600; }
+  .score-wrap { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+  .score { font-size: 4.2rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .score-unit { font-size: 1.2rem; color: var(--muted); }
+  .badge { display: inline-block; margin: 12px 0 22px; padding: 3px 14px; border-radius: 999px; font-size: .9rem; font-weight: 600; }
+  .badge.pass { background: var(--success-weak); color: var(--success); }
+  .badge.fail { background: var(--danger-weak); color: var(--danger); }
+  .result-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; max-width: 680px; margin: 0 auto 22px; }
+  .result-stats div { display: flex; flex-direction: column; padding: 10px; border-radius: 10px; background: var(--surface-2); }
+  .result-stats span { color: var(--muted); font-size: .8rem; }
+  .result-stats strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  @media (max-width: 600px) { .result-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .review-item { border-top: 1px solid var(--border); padding: 18px 0; }
+  .review-item:first-child { border-top: 0; padding-top: 0; }
+  .review-item:last-child { padding-bottom: 0; }
+  .review-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; font-size: .9rem; }
+  .review-head strong { font-size: .95rem; }
+  .review-item .q-text { font-size: 1rem; margin-bottom: 10px; }
+  .result-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .result-option { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; }
+  .result-option .option-key { width: 26px; height: 26px; font-size: .85rem; }
+  .result-option.is-correct { background: var(--success-weak); border-color: var(--success); }
+  .result-option.is-correct .option-key { background: var(--success); color: #fff; }
+  .result-option.is-mine { background: var(--danger-weak); border-color: var(--danger); }
+  .result-option.is-mine .option-key { background: var(--danger); color: #fff; }
+  .tag { flex: none; margin-left: auto; margin-top: 2px; padding: 1px 8px; border-radius: 999px; font-size: .75rem; font-weight: 700; color: #fff; white-space: nowrap; }
+  .tag-correct { background: var(--success); }
+  .tag-mine { background: var(--danger); }
+  .answer-line { margin: 10px 0 0; font-size: .9rem; }
+  .answer-line .mine { color: var(--danger); font-weight: 700; }
+  .answer-line .mine.ok { color: var(--success); }
+  .answer-line .right { color: var(--success); font-weight: 700; }
+  .explanation { margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: var(--surface-2); font-size: .92rem; }
+  .explanation p { margin: 4px 0 0; white-space: pre-wrap; }
+
+  /* 對話框 */
+  .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(8, 12, 20, .55); }
+  .modal-box { width: 100%; max-width: 460px; padding: 22px; border-radius: 14px; background: var(--surface); box-shadow: 0 20px 50px rgba(0, 0, 0, .3); }
+  .modal-box h2 { margin-bottom: 10px; }
+  .modal-box p { margin: 0 0 8px; color: var(--muted); overflow-wrap: anywhere; }
+  .modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="inner">
+    <div class="logo" aria-hidden="true">壽</div>
+    <div>
+      <h1>初壽險考題測試系統</h1>
+      <small>業務員基本教育訓練 精選考題・離線版</small>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- 題庫載入失敗 -->
+  <section id="view-error" class="card" hidden>
+    <h2>找不到題庫資料</h2>
+    <p class="muted">無法載入 questions.js。請確認 questions.js 與 index.html 位於同一個資料夾；若檔案遺失，請執行 <code>py parse_pdf.py</code> 重新產生。</p>
+  </section>
+
+  <!-- 首頁 -->
+  <section id="view-home" hidden>
+    <div class="card resume-card" id="resume-card" hidden>
+      <div>
+        <h2>有一場未完成的測驗</h2>
+        <p id="resume-info"></p>
+        <p class="muted small" id="resume-time"></p>
+      </div>
+      <div class="resume-actions">
+        <button type="button" class="btn btn-ghost" id="btn-discard-session">捨棄</button>
+        <button type="button" class="btn btn-primary" id="btn-resume">繼續作答</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-label">題庫總數</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub" id="stat-total-sub">題</div></div>
+      <div class="stat"><div class="stat-label">保險實務</div><div class="stat-value" id="stat-practice">0</div><div class="stat-sub">題</div></div>
+      <div class="stat"><div class="stat-label">保險法規</div><div class="stat-value" id="stat-law">0</div><div class="stat-sub">題</div></div>
+      <div class="stat"><div class="stat-label">已測驗次數</div><div class="stat-value" id="stat-attempts">0</div><div class="stat-sub" id="stat-attempts-sub">尚無紀錄</div></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:16px">測驗設定</h2>
+      <fieldset class="field">
+        <legend>模式</legend>
+        <div class="segmented">
+          <label><input type="radio" name="mode" value="practice" checked><span>練習模式</span></label>
+          <label><input type="radio" name="mode" value="exam"><span>考試模式</span></label>
+        </div>
+        <p class="field-hint" id="mode-hint"></p>
+      </fieldset>
+      <fieldset class="field">
+        <legend>測驗科目</legend>
+        <div class="segmented">
+          <label><input type="radio" name="subject" value="all" checked><span>全部 <small data-count="all"></small></span></label>
+          <label><input type="radio" name="subject" value="實務"><span>保險實務 <small data-count="實務"></small></span></label>
+          <label><input type="radio" name="subject" value="法規"><span>保險法規 <small data-count="法規"></small></span></label>
+        </div>
+      </fieldset>
+      <fieldset class="field">
+        <legend>題數</legend>
+        <div class="segmented">
+          <label><input type="radio" name="count" value="10"><span>10 題</span></label>
+          <label><input type="radio" name="count" value="20" checked><span>20 題</span></label>
+          <label><input type="radio" name="count" value="50"><span>50 題</span></label>
+          <label><input type="radio" name="count" value="100"><span>100 題</span></label>
+          <label><input type="radio" name="count" value="all"><span>全部</span></label>
+        </div>
+      </fieldset>
+      <div class="toggles">
+        <label class="switch">
+          <input type="checkbox" id="opt-random" checked>
+          <span class="track"></span>
+          <span class="switch-text">隨機出題<small>打亂題目順序</small></span>
+        </label>
+        <label class="switch" id="timer-switch">
+          <input type="checkbox" id="opt-timer" checked>
+          <span class="track"></span>
+          <span class="switch-text">計時<small id="timer-hint"></small></span>
+        </label>
+      </div>
+      <div class="start-row">
+        <p class="summary" id="start-summary"></p>
+        <button type="button" class="btn btn-primary btn-lg" id="btn-start">開始測驗</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>我的錯題本</h2>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-wrongbook">清空錯題本</button>
+      </div>
+      <div class="start-row" style="border-top:0; padding-top:0">
+        <p class="summary" id="wrongbook-summary"></p>
+        <button type="button" class="btn btn-primary" id="btn-wrongbook">練習錯題本</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>歷史測驗紀錄</h2>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-history">清除紀錄</button>
+      </div>
+      <div id="history"></div>
+    </div>
+  </section>
+
+  <!-- 測驗頁 -->
+  <section id="view-quiz" hidden>
+    <div class="card quiz-bar">
+      <div class="quiz-bar-left">
+        <span class="chip" id="quiz-label"></span>
+        <strong class="quiz-progress" id="quiz-progress"></strong>
+        <span class="muted small" id="quiz-answered"></span>
+      </div>
+      <div class="quiz-bar-right">
+        <div class="timer" id="quiz-timer"><span id="timer-label"></span><strong id="timer-value">00:00</strong></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-quit">放棄測驗</button>
+      </div>
+      <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div class="quiz-layout">
+      <div>
+        <article class="card question-card" id="question-card">
+          <div class="q-meta" id="q-meta"></div>
+          <p class="q-text" id="q-text"></p>
+          <div class="options" id="q-options" role="radiogroup" aria-label="選項"></div>
+          <div class="feedback" id="q-feedback" role="status" hidden></div>
+          <button type="button" class="link-btn" id="btn-clear-answer">清除本題作答</button>
+        </article>
+        <div class="quiz-nav">
+          <button type="button" class="btn" id="btn-prev">← 上一題</button>
+          <button type="button" class="btn nav-sheet" id="btn-sheet">答題卡</button>
+          <button type="button" class="btn btn-primary" id="btn-next">下一題 →</button>
+        </div>
+        <p class="kbd-hint"><span class="hint-key">快捷鍵：1–4 選擇答案、← → 切換題目</span><span class="hint-touch">在題目上左右滑動可切換題目</span></p>
+      </div>
+
+      <aside class="card matrix-card">
+        <div class="card-head">
+          <h3>答題狀態</h3>
+          <span class="muted small" id="matrix-count"></span>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="matrix" id="matrix"></div>
+        <button type="button" class="btn btn-danger btn-block" id="btn-submit">交卷</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 結果頁 -->
+  <section id="view-result" hidden>
+    <div class="card result-hero">
+      <p class="notice" id="result-notice" hidden>作答時間到，系統已自動交卷</p>
+      <div class="score-wrap"><span class="score" id="res-score">0</span><span class="score-unit">分</span></div>
+      <div class="badge" id="res-badge"></div>
+      <div class="result-stats">
+        <div><span>答對題數</span><strong id="res-correct"></strong></div>
+        <div><span>正確率</span><strong id="res-rate"></strong></div>
+        <div><span>作答耗時</span><strong id="res-time"></strong></div>
+        <div><span>未作答</span><strong id="res-unanswered"></strong></div>
+      </div>
+      <div class="result-actions">
+        <button type="button" class="btn btn-primary" id="btn-retry-wrong">重新挑戰本次錯題</button>
+        <button type="button" class="btn" id="btn-home">返回首頁</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>作答檢視</h2>
+        <div class="segmented segmented-sm">
+          <label><input type="radio" name="review" value="wrong" checked><span>只看錯題 <small id="review-count-wrong"></small></span></label>
+          <label><input type="radio" name="review" value="all"><span>全部題目 <small id="review-count-all"></small></span></label>
+        </div>
+      </div>
+      <div id="review-list"></div>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const SUBJECT_NAMES = { '實務': '保險實務', '法規': '保險法規' };
+  const MODE_NAMES = { exam: '考試模式', practice: '練習模式' };
+  const SOURCE_NAMES = { normal: '', retry: '錯題重練', wrongbook: '錯題本' };
+  const SECONDS_PER_QUESTION = 60;
+  const PASS_SCORE = 70;
+  const HISTORY_LIMIT = 50;
+  const WRONGBOOK_CLEAR_STREAK = 2;   // 錯題本中的題目連續答對幾次後移出
+  const SAVE_INTERVAL_MS = 5000;
+  const KEYS = {
+    history: 'lifeInsuranceQuiz.history',
+    settings: 'lifeInsuranceQuiz.settings',
+    wrongbook: 'lifeInsuranceQuiz.wrongbook',
+    session: 'lifeInsuranceQuiz.session',
+  };
+
+  const BANK = Array.isArray(window.QUESTIONS) ? window.QUESTIONS : [];
+  const BY_ID = new Map(BANK.map((q) => [q.id, q]));
+
+  // 題幹、選項與答案皆相同的重複題，對應到第一次出現的題目 id
+  const normalize = (text) => String(text).replace(/[\s\p{P}\p{S}]+/gu, '');
+  const CANONICAL_ID = new Map();
+  const DUPLICATE_COUNT = (() => {
+    const firstByKey = new Map();
+    for (const q of BANK) {
+      const options = q.options.map(normalize);
+      const key = [normalize(q.question), options.slice().sort().join('|'), options[q.answer - 1]].join('#');
+      if (!firstByKey.has(key)) firstByKey.set(key, q.id);
+      CANONICAL_ID.set(q.id, firstByKey.get(key));
+    }
+    return BANK.length - firstByKey.size;
+  })();
+
+  let quiz = null;        // 進行中的測驗
+  let lastResult = null;  // 最近一次交卷結果
+  let lastReview = null;  // 最近一次交卷的題目與作答
+
+  // ---------- 工具 ----------
+  const $ = (id) => document.getElementById(id);
+
+  function h(tag, props, children) {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(props || {})) {
+      if (value == null || value === false) continue;
+      if (key === 'className') node.className = value;
+      else if (key === 'text') node.textContent = value;
+      else if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
+      else node.setAttribute(key, value === true ? '' : value);
+    }
+    for (const child of [].concat(children == null ? [] : children)) {
+      if (child == null || child === false) continue;
+      node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+    }
+    return node;
+  }
+
+  const storage = {
+    read(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    },
+    write(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    remove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        // 無法使用 LocalStorage 時忽略
+      }
+    },
+  };
+
+  function shuffle(list) {
+    const arr = list.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function dedupe(questions) {
+    const seen = new Set();
+    return questions.filter((q) => {
+      const id = CANONICAL_ID.get(q.id);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }
+
+  const pad = (n) => String(n).padStart(2, '0');
+
+  function clock(totalSec) {
+    const sec = Math.max(0, Math.floor(totalSec));
+    const hours = Math.floor(sec / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    return (hours ? hours + ':' + pad(mins) : pad(mins)) + ':' + pad(sec % 60);
+  }
+
+  function durationText(totalSec) {
+    const sec = Math.max(0, Math.round(totalSec));
+    const hours = Math.floor(sec / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    const secs = sec % 60;
+    if (hours) return `${hours} 小時 ${mins} 分`;
+    if (mins) return secs ? `${mins} 分 ${secs} 秒` : `${mins} 分鐘`;
+    return `${secs} 秒`;
+  }
+
+  function dateText(ts) {
+    const d = new Date(ts);
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function labelFor(questions) {
+    const subjects = new Set(questions.map((q) => q.subject));
+    return subjects.size === 1 ? SUBJECT_NAMES[[...subjects][0]] : '全部科目';
+  }
+
+  function sessionLabel(mode, source, label) {
+    return [mode === 'practice' ? '練習' : '', SOURCE_NAMES[source] || '', label].filter(Boolean).join('・');
+  }
+
+  function showView(name) {
+    for (const view of ['home', 'quiz', 'result']) $('view-' + view).hidden = view !== name;
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- 對話框 ----------
+  function openModal({ title, body, actions }) {
+    $('modal-title').textContent = title;
+    $('modal-body').replaceChildren(...[].concat(body || []).map((text) => h('p', { text })));
+    $('modal-actions').replaceChildren(...actions.map((action) => h('button', {
+      type: 'button',
+      className: 'btn' + (action.primary ? ' btn-primary' : '') + (action.danger ? ' btn-danger' : ''),
+      text: action.label,
+      onclick: () => {
+        closeModal();
+        if (action.onClick) action.onClick();
+      },
+    })));
+    $('modal').hidden = false;
+    $('modal-actions').lastElementChild.focus();
+  }
+
+  function closeModal() {
+    $('modal').hidden = true;
+  }
+
+  // ---------- 設定 ----------
+  function readSettings() {
+    const saved = storage.read(KEYS.settings, {}) || {};
+    return {
+      mode: saved.mode === 'exam' ? 'exam' : 'practice',
+      subject: ['all', '實務', '法規'].includes(saved.subject) ? saved.subject : 'all',
+      count: ['10', '20', '50', '100', 'all'].includes(saved.count) ? saved.count : '20',
+      random: saved.random !== false,
+      timed: saved.timed !== false,
+    };
+  }
+
+  function currentSettings() {
+    return {
+      mode: document.querySelector('input[name="mode"]:checked').value,
+      subject: document.querySelector('input[name="subject"]:checked').value,
+      count: document.querySelector('input[name="count"]:checked').value,
+      random: $('opt-random').checked,
+      timed: $('opt-timer').checked,
+    };
+  }
+
+  function applySettings(settings) {
+    document.querySelector(`input[name="mode"][value="${settings.mode}"]`).checked = true;
+    document.querySelector(`input[name="subject"][value="${settings.subject}"]`).checked = true;
+    document.querySelector(`input[name="count"][value="${settings.count}"]`).checked = true;
+    $('opt-random').checked = settings.random;
+    $('opt-timer').checked = settings.timed;
+  }
+
+  const isTimed = (settings) => settings.mode === 'exam' && settings.timed;
+  const subjectLabel = (subject) => (subject === 'all' ? '全部科目' : SUBJECT_NAMES[subject]);
+
+  function poolFor(subject) {
+    return dedupe(subject === 'all' ? BANK : BANK.filter((q) => q.subject === subject));
+  }
+
+  function plannedCount(settings) {
+    const pool = poolFor(settings.subject);
+    return settings.count === 'all' ? pool.length : Math.min(Number(settings.count), pool.length);
+  }
+
+  // ---------- 首頁 ----------
+  function updateStartSummary() {
+    const settings = currentSettings();
+    storage.write(KEYS.settings, settings);
+    const practice = settings.mode === 'practice';
+    const n = plannedCount(settings);
+
+    $('start-summary').textContent =
+      `${MODE_NAMES[settings.mode]}：從「${subjectLabel(settings.subject)}」${settings.random ? '隨機' : '依序'}出 ${n} 題，` +
+      (isTimed(settings) ? `限時 ${durationText(n * SECONDS_PER_QUESTION)}` : '不限時');
+    $('mode-hint').textContent = practice
+      ? '每題作答後立即顯示對錯與正確答案，送出後不能修改。'
+      : '作答期間不顯示答案，交卷後統一計分。';
+    $('opt-timer').disabled = practice;
+    $('timer-switch').classList.toggle('disabled', practice);
+    $('timer-hint').textContent = practice
+      ? '練習模式不倒數，僅記錄作答耗時'
+      : settings.timed ? `每題 ${SECONDS_PER_QUESTION} 秒，時間到自動交卷` : '不倒數，僅記錄作答耗時';
+    renderWrongbook();
+  }
+
+  function renderHome() {
+    const counts = { '實務': 0, '法規': 0 };
+    for (const q of BANK) counts[q.subject]++;
+    $('stat-total').textContent = BANK.length;
+    $('stat-total-sub').textContent = DUPLICATE_COUNT
+      ? `題（其中 ${DUPLICATE_COUNT} 題與他題重複，出題時略過）`
+      : '題';
+    $('stat-practice').textContent = counts['實務'];
+    $('stat-law').textContent = counts['法規'];
+    document.querySelectorAll('[data-count]').forEach((node) => {
+      node.textContent = poolFor(node.dataset.count).length;
+    });
+    updateStartSummary();
+    renderResume();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = storage.read(KEYS.history, []);
+    const box = $('history');
+    $('btn-clear-history').hidden = history.length === 0;
+    $('stat-attempts').textContent = history.length;
+
+    if (!history.length) {
+      $('stat-attempts-sub').textContent = '尚無紀錄';
+      box.replaceChildren(h('p', { className: 'empty', text: '尚無測驗紀錄，完成一次測驗後會顯示在這裡。' }));
+      return;
+    }
+
+    const avg = history.reduce((sum, r) => sum + r.correct / r.total, 0) / history.length * 100;
+    const best = Math.max(...history.map((r) => r.score));
+    $('stat-attempts-sub').textContent = `平均正確率 ${avg.toFixed(1)}%・最高 ${best} 分`;
+
+    const rows = history.map((rec) => {
+      // 舊版紀錄的 mode 為 normal / retry
+      const source = rec.source || (rec.mode === 'retry' ? 'retry' : 'normal');
+      return h('tr', null, [
+        h('td', { className: 'num c-date', text: dateText(rec.date) }),
+        h('td', { className: 'c-label' }, [
+          rec.label,
+          rec.mode === 'practice' ? h('span', { className: 'chip', text: '練習' }) : null,
+          SOURCE_NAMES[source] ? h('span', { className: 'chip', text: SOURCE_NAMES[source] }) : null,
+          rec.timeUp ? h('span', { className: 'chip chip-warn', text: '時間到' }) : null,
+        ]),
+        h('td', { className: 'num c-total', text: `${rec.total} 題` }),
+        h('td', { className: 'num c-score ' + (rec.score >= PASS_SCORE ? 'pass' : 'fail'), text: `${rec.score} 分` }),
+        h('td', { className: 'num c-rate', text: `${rec.correct}/${rec.total}（${(rec.correct / rec.total * 100).toFixed(1)}%）` }),
+        h('td', { className: 'num c-time', text: durationText(rec.durationSec) }),
+        h('td', { className: 'c-action' }, rec.wrongIds && rec.wrongIds.length
+          ? h('button', {
+              type: 'button',
+              className: 'btn btn-sm',
+              text: `錯題重練（${rec.wrongIds.length}）`,
+              onclick: () => startFromIds(rec.wrongIds, 'retry'),
+            })
+          : h('span', { className: 'muted', text: '全對' })),
+      ]);
+    });
+
+    box.replaceChildren(h('div', { className: 'table-wrap' }, h('table', { className: 'history-table' }, [
+      h('thead', null, h('tr', null, ['測驗時間', '科目', '題數', '得分', '答對（正確率）', '耗時', ''].map((t) => h('th', { text: t })))),
+      h('tbody', null, rows),
+    ])));
+  }
+
+  // ---------- 錯題本 ----------
+  function readWrongbook() {
+    const raw = storage.read(KEYS.wrongbook, {});
+    const book = {};
+    if (raw && typeof raw === 'object') {
+      for (const [id, entry] of Object.entries(raw)) {
+        if (BY_ID.has(id) && entry && typeof entry === 'object') book[id] = entry;
+      }
+    }
+    return book;
+  }
+
+  function wrongbookQuestions(subject) {
+    const book = readWrongbook();
+    return BANK.filter((q) => book[q.id] && (subject === 'all' || q.subject === subject));
+  }
+
+  function updateWrongbook(questions, answers) {
+    const book = readWrongbook();
+    questions.forEach((q, i) => {
+      const answer = answers[i];
+      if (!answer) return;  // 未作答不列入錯題本
+      const id = CANONICAL_ID.get(q.id);
+      const entry = book[id];
+      if (answer !== q.answer) {
+        book[id] = { wrong: (entry ? entry.wrong : 0) + 1, streak: 0, lastWrong: Date.now() };
+      } else if (entry) {
+        const streak = (entry.streak || 0) + 1;
+        if (streak >= WRONGBOOK_CLEAR_STREAK) delete book[id];
+        else book[id] = { ...entry, streak };
+      }
+    });
+    storage.write(KEYS.wrongbook, book);
+  }
+
+  function renderWrongbook() {
+    const all = wrongbookQuestions('all');
+    const { subject } = currentSettings();
+    const selected = wrongbookQuestions(subject);
+    const button = $('btn-wrongbook');
+    $('btn-clear-wrongbook').hidden = !all.length;
+
+    if (!all.length) {
+      $('wrongbook-summary').textContent =
+        `目前沒有錯題。答錯的題目（不含未作答）會自動收進錯題本，同一題連續答對 ${WRONGBOOK_CLEAR_STREAK} 次後移出。`;
+      button.disabled = true;
+      button.textContent = '練習錯題本';
+      return;
+    }
+
+    const practiceCount = all.filter((q) => q.subject === '實務').length;
+    $('wrongbook-summary').textContent =
+      `共 ${all.length} 題（保險實務 ${practiceCount}、保險法規 ${all.length - practiceCount}）。` +
+      `同一題連續答對 ${WRONGBOOK_CLEAR_STREAK} 次後移出。`;
+    button.disabled = !selected.length;
+    button.textContent = selected.length
+      ? `練習錯題本（${subjectLabel(subject)} ${selected.length} 題）`
+      : `「${subjectLabel(subject)}」沒有錯題`;
+  }
+
+  // ---------- 作答進度保存 ----------
+  function elapsedSec() {
+    return quiz.elapsedBefore + (Date.now() - quiz.resumedAt) / 1000;
+  }
+
+  function saveSession() {
+    if (!quiz) return;
+    quiz.lastSavedAt = Date.now();
+    storage.write(KEYS.session, {
+      ids: quiz.questions.map((q) => q.id),
+      answers: quiz.answers,
+      index: quiz.index,
+      mode: quiz.mode,
+      source: quiz.source,
+      limitSec: quiz.limitSec,
+      elapsedSec: elapsedSec(),
+      savedAt: Date.now(),
+    });
+  }
+
+  function loadSession() {
+    const saved = storage.read(KEYS.session, null);
+    if (!saved) return null;
+    const valid = Array.isArray(saved.ids) && saved.ids.length && Array.isArray(saved.answers)
+      && saved.answers.length === saved.ids.length && saved.ids.every((id) => BY_ID.has(id));
+    if (!valid) {
+      storage.remove(KEYS.session);
+      return null;
+    }
+    // 計時測驗在關閉期間照常倒數；不計時則只累計實際作答時間
+    const away = saved.limitSec ? Math.max(0, (Date.now() - saved.savedAt) / 1000) : 0;
+    return {
+      ...saved,
+      questions: saved.ids.map((id) => BY_ID.get(id)),
+      elapsedNow: (saved.elapsedSec || 0) + away,
+    };
+  }
+
+  function renderResume() {
+    const saved = loadSession();
+    $('resume-card').hidden = !saved;
+    if (!saved) return;
+    const answered = saved.answers.filter(Boolean).length;
+    $('resume-info').textContent =
+      `${sessionLabel(saved.mode, saved.source, labelFor(saved.questions))}・第 ${saved.index + 1} 題・已答 ${answered} / ${saved.questions.length}`;
+    if (saved.limitSec) {
+      const remaining = saved.limitSec - saved.elapsedNow;
+      $('resume-time').textContent = remaining > 0
+        ? `剩餘 ${durationText(remaining)}（關閉期間照常倒數）`
+        : '已超過作答時限，繼續後將直接交卷';
+    } else {
+      $('resume-time').textContent = `已用 ${durationText(saved.elapsedNow)}`;
+    }
+  }
+
+  function resumeSession() {
+    const saved = loadSession();
+    if (!saved) {
+      renderHome();
+      return;
+    }
+    beginQuiz({
+      questions: saved.questions,
+      answers: saved.answers,
+      index: saved.index,
+      mode: saved.mode === 'practice' ? 'practice' : 'exam',
+      source: saved.source || 'normal',
+      limitSec: saved.limitSec || 0,
+      elapsedBefore: saved.elapsedNow,
+    });
+  }
+
+  function withSessionCheck(action) {
+    if (!loadSession()) {
+      action();
+      return;
+    }
+    openModal({
+      title: '捨棄未完成的測驗？',
+      body: '你有一場尚未完成的測驗，開始新的測驗會捨棄它的作答進度。',
+      actions: [
+        { label: '取消' },
+        { label: '捨棄並開始', danger: true, onClick: () => { storage.remove(KEYS.session); action(); } },
+      ],
+    });
+  }
+
+  // ---------- 測驗 ----------
+  function startNewQuiz() {
+    withSessionCheck(() => {
+      const settings = currentSettings();
+      const pool = poolFor(settings.subject);
+      const ordered = settings.random ? shuffle(pool) : pool;
+      beginQuiz({ questions: ordered.slice(0, plannedCount(settings)), source: 'normal' });
+    });
+  }
+
+  function startFromIds(ids, source) {
+    withSessionCheck(() => {
+      const questions = dedupe(ids.map((id) => BY_ID.get(id)).filter(Boolean));
+      beginQuiz({ questions: $('opt-random').checked ? shuffle(questions) : questions, source });
+    });
+  }
+
+  function startWrongbook() {
+    const questions = wrongbookQuestions(currentSettings().subject);
+    startFromIds(questions.map((q) => q.id), 'wrongbook');
+  }
+
+  function beginQuiz({ questions, source, mode, answers, index = 0, limitSec, elapsedBefore = 0 }) {
+    if (!questions.length) return;
+    if (quiz) clearInterval(quiz.timerId);
+    const settings = currentSettings();
+    const quizMode = mode || settings.mode;
+
+    quiz = {
+      questions,
+      source,
+      mode: quizMode,
+      answers: answers ? answers.slice() : new Array(questions.length).fill(0),
+      index: Math.max(0, Math.min(index, questions.length - 1)),
+      label: labelFor(questions),
+      limitSec: limitSec !== undefined ? limitSec : (isTimed(settings) ? questions.length * SECONDS_PER_QUESTION : 0),
+      elapsedBefore,
+      resumedAt: Date.now(),
+      lastSavedAt: 0,
+      timerId: null,
+    };
+
+    const practice = quizMode === 'practice';
+    $('quiz-label').textContent = sessionLabel(quizMode, source, quiz.label);
+    $('timer-label').textContent = quiz.limitSec ? '剩餘' : '已用';
+    $('btn-submit').textContent = practice ? '結束練習' : '交卷';
+    $('btn-quit').textContent = practice ? '放棄練習' : '放棄測驗';
+    const legend = practice
+      ? [['dot-correct', '答對'], ['dot-wrong', '答錯'], ['', '未作答'], ['dot-current', '目前題目']]
+      : [['dot-answered', '已作答'], ['', '未作答'], ['dot-current', '目前題目']];
+    $('legend').replaceChildren(...legend.map(([cls, text]) => h('span', null, [h('i', { className: 'dot ' + cls }), text])));
+    $('matrix').replaceChildren(...questions.map((q, i) => h('button', {
+      type: 'button',
+      className: 'cell',
+      text: i + 1,
+      onclick: () => goTo(i, true),
+    })));
+
+    showView('quiz');
+    renderQuestion();
+    saveSession();
+    tick();
+    if (quiz) quiz.timerId = setInterval(tick, 500);
+  }
+
+  function tick() {
+    if (!quiz) return;
+    const elapsed = elapsedSec();
+    const timer = $('quiz-timer');
+    if (quiz.limitSec) {
+      const remaining = quiz.limitSec - elapsed;
+      $('timer-value').textContent = clock(Math.ceil(remaining));
+      timer.classList.toggle('warn', remaining <= 60);
+      if (remaining <= 0) {
+        finishQuiz(true);
+        return;
+      }
+    } else {
+      $('timer-value').textContent = clock(elapsed);
+      timer.classList.remove('warn');
+    }
+    if (Date.now() - quiz.lastSavedAt >= SAVE_INTERVAL_MS) saveSession();
+  }
+
+  function renderQuestion() {
+    const { questions, answers, index, mode } = quiz;
+    const q = questions[index];
+    const chosen = answers[index];
+    const revealed = mode === 'practice' && chosen > 0;
+
+    $('quiz-progress').textContent = `第 ${index + 1} / ${questions.length} 題`;
+    $('q-meta').textContent = `${SUBJECT_NAMES[q.subject]}・題庫第 ${q.no} 題`;
+    $('q-text').textContent = q.question;
+    $('q-options').replaceChildren(...q.options.map((text, i) => {
+      const value = i + 1;
+      let className = 'option';
+      if (revealed) {
+        className += ' locked';
+        if (value === q.answer) className += ' is-correct';
+        else if (value === chosen) className += ' is-wrong';
+      } else if (value === chosen) {
+        className += ' selected';
+      }
+      return h('button', {
+        type: 'button',
+        className,
+        role: 'radio',
+        'aria-checked': String(value === chosen),
+        'aria-disabled': revealed ? 'true' : null,
+        onclick: () => choose(value),
+      }, [
+        h('span', { className: 'option-key', text: value }),
+        h('span', { className: 'option-text', text }),
+      ]);
+    }));
+
+    const feedback = $('q-feedback');
+    feedback.hidden = !revealed;
+    if (revealed) {
+      const correct = chosen === q.answer;
+      feedback.className = 'feedback ' + (correct ? 'ok' : 'bad');
+      feedback.replaceChildren(
+        h('strong', { text: correct ? '✓ 答對了' : '✗ 答錯了' }),
+        h('p', { className: 'answer-reveal', text: `正確答案：(${q.answer}) ${q.options[q.answer - 1]}` })
+      );
+      if (q.explanation) feedback.append(h('p', { text: q.explanation }));
+    }
+
+    $('btn-clear-answer').hidden = !chosen || mode === 'practice';
+    $('btn-prev').disabled = index === 0;
+    $('btn-next').disabled = index === questions.length - 1;
+    updateMatrix();
+  }
+
+  function updateMatrix() {
+    const { questions, answers, index, mode } = quiz;
+    const practice = mode === 'practice';
+    const cells = $('matrix').children;
+    let answered = 0;
+    let correct = 0;
+    answers.forEach((answer, i) => {
+      const cell = cells[i];
+      const isCorrect = answer > 0 && answer === questions[i].answer;
+      if (answer) answered++;
+      if (isCorrect) correct++;
+      cell.classList.toggle('answered', !practice && answer > 0);
+      cell.classList.toggle('correct', practice && isCorrect);
+      cell.classList.toggle('wrong', practice && answer > 0 && !isCorrect);
+      cell.classList.toggle('current', i === index);
+      const status = !answer ? '未作答' : practice ? (isCorrect ? '答對' : '答錯') : '已作答';
+      cell.setAttribute('aria-label', `第 ${i + 1} 題，${status}`);
+      if (i === index) cell.setAttribute('aria-current', 'true');
+      else cell.removeAttribute('aria-current');
+    });
+    $('quiz-answered').textContent = `已答 ${answered} / ${questions.length}` + (practice ? `・答對 ${correct}` : '');
+    $('matrix-count').textContent = `未答 ${questions.length - answered} 題`;
+    $('progress-fill').style.width = (answered / questions.length * 100) + '%';
+
+    // 讓目前題號留在矩陣可視範圍內
+    const box = $('matrix');
+    const current = cells[index];
+    if (current.offsetTop < box.scrollTop || current.offsetTop + current.offsetHeight > box.scrollTop + box.clientHeight) {
+      box.scrollTop = current.offsetTop - box.clientHeight / 2;
+    }
+  }
+
+  function choose(value) {
+    if (!quiz) return;
+    if (quiz.mode === 'practice' && quiz.answers[quiz.index]) return;  // 練習模式作答後鎖定
+    quiz.answers[quiz.index] = value;
+    renderQuestion();
+    saveSession();
+  }
+
+  const scrollBehavior = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+
+  function goTo(index, fromMatrix) {
+    if (!quiz) return;
+    const next = Math.max(0, Math.min(index, quiz.questions.length - 1));
+    const changed = next !== quiz.index;
+    quiz.index = next;
+    renderQuestion();
+    saveSession();
+    if (!window.matchMedia('(max-width: 900px)').matches) return;
+    // 單欄版面：從答題卡跳題，或題目頂端已捲出畫面時，捲回題目開頭
+    const card = $('question-card');
+    const barBottom = document.querySelector('.quiz-bar').getBoundingClientRect().bottom;
+    if (fromMatrix || (changed && card.getBoundingClientRect().top < barBottom)) {
+      card.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+    }
+  }
+
+  // 在題目卡上左右滑動切換題目（向左滑＝下一題）
+  function bindSwipe(target) {
+    let start = null;
+    target.addEventListener('touchstart', (e) => {
+      start = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null;
+    }, { passive: true });
+    target.addEventListener('touchend', (e) => {
+      if (!start || !quiz || !$('modal').hidden) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      const quick = Date.now() - start.t < 700;
+      start = null;
+      if (quick && Math.abs(dx) >= 60 && Math.abs(dx) > Math.abs(dy) * 1.5) goTo(quiz.index + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+    target.addEventListener('touchcancel', () => { start = null; }, { passive: true });
+  }
+
+  function requestSubmit() {
+    const practice = quiz.mode === 'practice';
+    const finishLabel = practice ? '結束練習' : '仍要交卷';
+    const unanswered = [];
+    quiz.answers.forEach((answer, i) => { if (!answer) unanswered.push(i); });
+    if (!unanswered.length) {
+      openModal({
+        title: practice ? '確定結束練習？' : '確定要交卷嗎？',
+        body: practice ? '所有題目皆已作答。' : '所有題目皆已作答，交卷後將無法修改答案。',
+        actions: [
+          { label: '再檢查一下' },
+          { label: practice ? '結束練習' : '確定交卷', primary: true, onClick: () => finishQuiz(false) },
+        ],
+      });
+      return;
+    }
+    const shown = unanswered.slice(0, 40).map((i) => i + 1).join('、');
+    openModal({
+      title: `還有 ${unanswered.length} 題未作答`,
+      body: [
+        `未作答題號：${shown}${unanswered.length > 40 ? ' …' : ''}`,
+        practice ? '未作答的題目將以答錯計分，確定要結束練習嗎？' : '未作答的題目將以答錯計算，確定要交卷嗎？',
+      ],
+      actions: [
+        { label: '前往第一個未答題', onClick: () => goTo(unanswered[0], true) },
+        { label: finishLabel, danger: true, onClick: () => finishQuiz(false) },
+      ],
+    });
+  }
+
+  function requestQuit() {
+    const practice = quiz.mode === 'practice';
+    openModal({
+      title: practice ? '放棄本次練習？' : '放棄本次測驗？',
+      body: '本次作答不會計分，也不會存入歷史紀錄與錯題本。',
+      actions: [
+        { label: '繼續作答' },
+        {
+          label: '放棄並返回首頁',
+          danger: true,
+          onClick: () => {
+            clearInterval(quiz.timerId);
+            quiz = null;
+            storage.remove(KEYS.session);
+            renderHome();
+            showView('home');
+          },
+        },
+      ],
+    });
+  }
+
+  function finishQuiz(timeUp) {
+    if (!quiz) return;
+    clearInterval(quiz.timerId);
+    closeModal();
+
+    const { questions, answers } = quiz;
+    const elapsed = Math.round(elapsedSec());
+    const wrongIds = [];
+    let correct = 0;
+    let unanswered = 0;
+    questions.forEach((q, i) => {
+      if (answers[i] === q.answer) {
+        correct++;
+      } else {
+        wrongIds.push(q.id);
+        if (!answers[i]) unanswered++;
+      }
+    });
+
+    const result = {
+      date: Date.now(),
+      label: quiz.label,
+      mode: quiz.mode,
+      source: quiz.source,
+      total: questions.length,
+      correct,
+      unanswered,
+      score: Math.round(correct / questions.length * 100),
+      durationSec: quiz.limitSec ? Math.min(elapsed, quiz.limitSec) : elapsed,
+      limitSec: quiz.limitSec,
+      timeUp,
+      wrongIds,
+    };
+    const history = storage.read(KEYS.history, []);
+    history.unshift(result);
+    storage.write(KEYS.history, history.slice(0, HISTORY_LIMIT));
+    updateWrongbook(questions, answers);
+    storage.remove(KEYS.session);
+
+    quiz = null;
+    renderResult(result, { questions, answers });
+    showView('result');
+  }
+
+  // ---------- 結果頁 ----------
+  function renderResult(result, review) {
+    lastResult = result;
+    lastReview = review;
+    const passed = result.score >= PASS_SCORE;
+
+    $('result-notice').hidden = !result.timeUp;
+    $('res-score').textContent = result.score;
+    $('res-badge').className = 'badge ' + (passed ? 'pass' : 'fail');
+    $('res-badge').textContent = passed ? `及格（${PASS_SCORE} 分以上）` : `未達及格標準（${PASS_SCORE} 分）`;
+    $('res-correct').textContent = `${result.correct} / ${result.total}`;
+    $('res-rate').textContent = (result.correct / result.total * 100).toFixed(1) + '%';
+    $('res-time').textContent = durationText(result.durationSec);
+    $('res-unanswered').textContent = `${result.unanswered} 題`;
+
+    const wrongCount = result.wrongIds.length;
+    const retry = $('btn-retry-wrong');
+    retry.disabled = wrongCount === 0;
+    retry.textContent = wrongCount ? `重新挑戰本次錯題（${wrongCount} 題）` : '全部答對，沒有錯題';
+
+    $('review-count-wrong').textContent = wrongCount;
+    $('review-count-all').textContent = result.total;
+    document.querySelector('input[name="review"][value="wrong"]').checked = true;
+    renderReview('wrong');
+  }
+
+  function renderReview(filter) {
+    const { questions, answers } = lastReview;
+    const items = questions
+      .map((q, i) => ({ q, answer: answers[i], index: i }))
+      .filter((item) => filter === 'all' || item.answer !== item.q.answer);
+    const list = $('review-list');
+    if (!items.length) {
+      list.replaceChildren(h('p', { className: 'empty', text: '太厲害了，本次全部答對！' }));
+      return;
+    }
+    list.replaceChildren(...items.map(reviewItem));
+  }
+
+  function reviewItem({ q, answer, index }) {
+    const isRight = answer === q.answer;
+    const [statusClass, statusText] = !answer ? ['chip-warn', '未作答'] : isRight ? ['chip-success', '答對'] : ['chip-danger', '答錯'];
+    return h('article', { className: 'review-item' }, [
+      h('div', { className: 'review-head' }, [
+        h('strong', { text: `第 ${index + 1} 題` }),
+        h('span', { className: 'muted', text: `${SUBJECT_NAMES[q.subject]}・題庫第 ${q.no} 題` }),
+        h('span', { className: 'chip ' + statusClass, text: statusText }),
+      ]),
+      h('p', { className: 'q-text', text: q.question }),
+      h('ol', { className: 'result-options' }, q.options.map((text, i) => {
+        const value = i + 1;
+        const isCorrect = value === q.answer;
+        const isMine = value === answer;
+        let tag = null;
+        if (isCorrect && isMine) tag = h('span', { className: 'tag tag-correct', text: '你的答案・正確' });
+        else if (isCorrect) tag = h('span', { className: 'tag tag-correct', text: '正確答案' });
+        else if (isMine) tag = h('span', { className: 'tag tag-mine', text: '你的答案' });
+        return h('li', { className: 'result-option' + (isCorrect ? ' is-correct' : '') + (isMine && !isCorrect ? ' is-mine' : '') }, [
+          h('span', { className: 'option-key', text: value }),
+          h('span', { className: 'option-text', text }),
+          tag,
+        ]);
+      })),
+      h('p', { className: 'answer-line' }, [
+        '你的答案：',
+        h('span', { className: 'mine' + (isRight ? ' ok' : ''), text: answer ? `(${answer})` : '未作答' }),
+        '　正確答案：',
+        h('span', { className: 'right', text: `(${q.answer})` }),
+      ]),
+      q.explanation ? h('div', { className: 'explanation' }, [h('strong', { text: '解析' }), h('p', { text: q.explanation })]) : null,
+    ]);
+  }
+
+  // ---------- 初始化 ----------
+  function init() {
+    if (!BANK.length) {
+      $('view-error').hidden = false;
+      return;
+    }
+
+    applySettings(readSettings());
+    document.querySelectorAll('input[name="mode"], input[name="subject"], input[name="count"], #opt-random, #opt-timer')
+      .forEach((input) => input.addEventListener('change', updateStartSummary));
+    document.querySelectorAll('input[name="review"]')
+      .forEach((input) => input.addEventListener('change', () => renderReview(input.value)));
+
+    $('btn-start').addEventListener('click', startNewQuiz);
+    $('btn-resume').addEventListener('click', resumeSession);
+    $('btn-discard-session').addEventListener('click', () => openModal({
+      title: '捨棄未完成的測驗？',
+      body: '作答進度將被刪除，且不會存入歷史紀錄。',
+      actions: [
+        { label: '取消' },
+        { label: '捨棄', danger: true, onClick: () => { storage.remove(KEYS.session); renderResume(); } },
+      ],
+    }));
+    $('btn-wrongbook').addEventListener('click', startWrongbook);
+    $('btn-clear-wrongbook').addEventListener('click', () => openModal({
+      title: '清空錯題本？',
+      body: '錯題本中的所有題目將被移除，此動作無法復原。',
+      actions: [
+        { label: '取消' },
+        { label: '清空', danger: true, onClick: () => { storage.write(KEYS.wrongbook, {}); renderWrongbook(); } },
+      ],
+    }));
+    $('btn-prev').addEventListener('click', () => goTo(quiz.index - 1));
+    $('btn-next').addEventListener('click', () => goTo(quiz.index + 1));
+    $('btn-clear-answer').addEventListener('click', () => choose(0));
+    $('btn-sheet').addEventListener('click', () => {
+      document.querySelector('.matrix-card').scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
+    });
+    bindSwipe($('question-card'));
+    $('btn-submit').addEventListener('click', requestSubmit);
+    $('btn-quit').addEventListener('click', requestQuit);
+    $('btn-retry-wrong').addEventListener('click', () => {
+      if (lastResult && lastResult.wrongIds.length) startFromIds(lastResult.wrongIds, 'retry');
+    });
+    $('btn-home').addEventListener('click', () => {
+      renderHome();
+      showView('home');
+    });
+    $('btn-clear-history').addEventListener('click', () => openModal({
+      title: '清除所有歷史紀錄？',
+      body: '此動作無法復原（錯題本不受影響）。',
+      actions: [
+        { label: '取消' },
+        { label: '清除', danger: true, onClick: () => { storage.write(KEYS.history, []); renderHistory(); } },
+      ],
+    }));
+
+    $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (!$('modal').hidden) {
+        if (e.key === 'Escape') closeModal();
+        return;
+      }
+      if (!quiz || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.target instanceof HTMLInputElement) return;
+      if (/^[1-4]$/.test(e.key) && Number(e.key) <= quiz.questions[quiz.index].options.length) {
+        choose(Number(e.key));
+      } else if (e.key === 'ArrowLeft') {
+        goTo(quiz.index - 1);
+      } else if (e.key === 'ArrowRight') {
+        goTo(quiz.index + 1);
+      }
+    });
+
+    // 關閉或切換分頁時保存作答進度
+    window.addEventListener('pagehide', saveSession);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) saveSession(); });
+
+    renderHome();
+    showView('home');
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

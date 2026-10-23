@@ -1,0 +1,4 @@
+.vscode/
+*.pdf
+parse_pdf.py
+claude.md.txt
